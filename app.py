@@ -240,11 +240,12 @@ def take_quiz(quiz_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM quizzes WHERE id=?', (quiz_id,))
-    quiz = cursor.fetchone()
-    if not quiz:
+    quiz_row = cursor.fetchone()
+    if not quiz_row:
         conn.close()
         flash('Quiz not found.', 'danger')
         return redirect(url_for('browse_quizzes'))
+    quiz = dict(quiz_row)
     # Prevent re-attempt
     cursor.execute('SELECT id FROM scores WHERE user_id=? AND quiz_id=?',
                    (session['user_id'], quiz_id))
