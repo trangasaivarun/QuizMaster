@@ -18,12 +18,14 @@ app.secret_key = 'quizmaster_secret_key'
 
 # ----------------------------------------------------------------
 # MySQL Configuration
-# Change host/user/password to match your local MySQL setup
+# Uses environment variables for Render deployment, fallbacks for local dev
 # ----------------------------------------------------------------
-app.config['MYSQL_HOST']     = 'localhost'
-app.config['MYSQL_USER']     = 'root'
-app.config['MYSQL_PASSWORD'] = 'Varun23141'
-app.config['MYSQL_DB']       = 'quizmaster'
+import os
+
+app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'Varun23141')
+app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB', 'quizmaster')
 
 mysql = MySQL(app)
 
