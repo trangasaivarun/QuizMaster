@@ -1,35 +1,38 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from flask_mysqldb import MySQL
-import MySQLdb.cursors
-import hashlib   # used for password hashing (discussed in class)
+import sqlite3
+import os
+import datetime
+import hashlib   # used for password hashing
 import re        # used for email/phone validation
 import random    # used for OTP generation
-import smtplib   # used for sending OTP email (Python standard library)
-from email.mime.text import MIMEText          # for building email body
-from email.mime.multipart import MIMEMultipart  # for building email structure
+import smtplib   # used for sending OTP email
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 app.jinja_env.globals['enumerate'] = enumerate  # allow {% for i, x in enumerate(list) %} in templates
 
-# ----------------------------------------------------------------
-# Secret key – used by Flask to sign session cookies
-# ----------------------------------------------------------------
 app.secret_key = 'quizmaster_secret_key'
 
+# Register a converter for 'DATETIME' so sqlite parses 'YYYY-MM-DD HH:MM:SS' strings into datetime objects
+sqlite3.register_converter(
+    'DATETIME', 
+    lambda b: datetime.datetime.strptime(b.decode(), '%Y-%m-%d %H:%M:%S') if b else None
+)
+
 # ----------------------------------------------------------------
-# MySQL Configuration
-# Uses environment variables for Render deployment, fallbacks for local dev
+# SQLite Configuration
 # ----------------------------------------------------------------
-import os
+DATABASE = os.path.join(app.root_path, 'quizmaster.db')
 
-app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'Varun23141')
-app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB', 'quizmaster')
-app.config['MYSQL_PORT']     = int(os.environ.get('MYSQL_PORT', 3306))
+def get_db_connection():
+    conn = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn.row_factory = sqlite3.Row  # This allows us to access columns by name like dictionaries
+    return conn
 
-mysql = MySQL(app)
-
+@app.teardown_appcontext
+def close_connection(exception):
+    pass  # We'll create and close connections per request manually for explicit commits
 # ----------------------------------------------------------------
 # Email Configuration (Gmail SMTP)
 # Use your Gmail address and an App Password
@@ -63,10 +66,12 @@ def login():
         email    = request.form['email']
         password = hash_password(request.form['password'])
 
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE email = %s AND password = %s',
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE email = ? AND password = ?',
                        (email, password))
         user = cursor.fetchone()
+        conn.close()
 
         if user:
             session['loggedin'] = True
@@ -104,12 +109,14 @@ def register():
             flash('Phone number must be exactly 10 digits.', 'danger')
             return redirect(url_for('login'))
 
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
         # Check if email already exists
-        cursor.execute('SELECT id FROM users WHERE email = %s', (email,))
+        cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
         existing = cursor.fetchone()
         if existing:
+            conn.close()
             flash('Email already registered. Please login.', 'warning')
             return redirect(url_for('login'))
 
@@ -117,10 +124,11 @@ def register():
         cursor.execute(
             '''INSERT INTO users
                (first_name, last_name, email, phone, password, gender)
-               VALUES (%s, %s, %s, %s, %s, %s)''',
+               VALUES (?, ?, ?, ?, ?, ?)''',
             (first_name, last_name, email, phone, password, gender)
         )
-        mysql.connection.commit()
+        conn.commit()
+        conn.close()
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
 
@@ -136,10 +144,12 @@ def admin_login():
         email    = request.form['email']
         password = request.form['password']   # plain text for default admin
 
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM admins WHERE email = %s AND password = %s',
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM admins WHERE email = ? AND password = ?',
                        (email, password))
         admin = cursor.fetchone()
+        conn.close()
 
         if admin:
             session['admin_loggedin'] = True
@@ -171,17 +181,19 @@ def login_required(f):
 @app.route('/dashboard')
 @login_required
 def user_dashboard():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('SELECT COUNT(*) AS cnt FROM quizzes')
-    quiz_count = cursor.fetchone()['cnt']
-    cursor.execute('SELECT COUNT(*) AS cnt FROM scores WHERE user_id=%s',
+    quiz_count = dict(cursor.fetchone())['cnt']
+    cursor.execute('SELECT COUNT(*) AS cnt FROM scores WHERE user_id=?',
                    (session['user_id'],))
-    attempt_count = cursor.fetchone()['cnt']
+    attempt_count = dict(cursor.fetchone())['cnt']
     cursor.execute('''SELECT s.score, s.total, q.title, s.attempted_at
                       FROM scores s JOIN quizzes q ON q.id=s.quiz_id
-                      WHERE s.user_id=%s ORDER BY s.attempted_at DESC LIMIT 1''',
+                      WHERE s.user_id=? ORDER BY s.attempted_at DESC LIMIT 1''',
                    (session['user_id'],))
     last_attempt = cursor.fetchone()
+    conn.close()
     return render_template('user_dashboard.html',
                            username=session['username'],
                            quiz_count=quiz_count,
@@ -195,18 +207,23 @@ def user_dashboard():
 @app.route('/quizzes')
 @login_required
 def browse_quizzes():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT q.*, COUNT(qs.id) AS question_count
                       FROM quizzes q LEFT JOIN questions qs ON qs.quiz_id=q.id
                       GROUP BY q.id ORDER BY q.created_at DESC''')
-    quizzes = cursor.fetchall()
+    
+    # Needs to be a mutable list of dicts to add 'attempted' field
+    quizzes = [dict(row) for row in cursor.fetchall()]
+    
     # Mark which quizzes the current user has already attempted
-    cursor.execute('SELECT quiz_id, id AS score_id FROM scores WHERE user_id=%s',
+    cursor.execute('SELECT quiz_id, id AS score_id FROM scores WHERE user_id=?',
                    (session['user_id'],))
     attempted = {row['quiz_id']: row['score_id'] for row in cursor.fetchall()}
     for q in quizzes:
         q['attempted']  = q['id'] in attempted
         q['score_id']   = attempted.get(q['id'])
+    conn.close()
     return render_template('user_quizzes.html', quizzes=quizzes)
 
 
@@ -216,21 +233,25 @@ def browse_quizzes():
 @app.route('/quiz/<int:quiz_id>/take')
 @login_required
 def take_quiz(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM quizzes WHERE id=%s', (quiz_id,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM quizzes WHERE id=?', (quiz_id,))
     quiz = cursor.fetchone()
     if not quiz:
+        conn.close()
         flash('Quiz not found.', 'danger')
         return redirect(url_for('browse_quizzes'))
     # Prevent re-attempt
-    cursor.execute('SELECT id FROM scores WHERE user_id=%s AND quiz_id=%s',
+    cursor.execute('SELECT id FROM scores WHERE user_id=? AND quiz_id=?',
                    (session['user_id'], quiz_id))
     existing = cursor.fetchone()
     if existing:
+        conn.close()
         flash('You have already attempted this quiz. View your result below.', 'warning')
         return redirect(url_for('quiz_result', score_id=existing['id']))
-    cursor.execute('SELECT * FROM questions WHERE quiz_id=%s', (quiz_id,))
-    questions = list(cursor.fetchall())
+    cursor.execute('SELECT * FROM questions WHERE quiz_id=?', (quiz_id,))
+    questions = [dict(r) for r in cursor.fetchall()]
+    conn.close()
     if not questions:
         flash('This quiz has no questions yet.', 'warning')
         return redirect(url_for('browse_quizzes'))
@@ -282,15 +303,17 @@ def take_quiz(quiz_id):
 @app.route('/quiz/<int:quiz_id>/submit', methods=['POST'])
 @login_required
 def submit_quiz(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     # Guard: prevent double submit
-    cursor.execute('SELECT id FROM scores WHERE user_id=%s AND quiz_id=%s',
+    cursor.execute('SELECT id FROM scores WHERE user_id=? AND quiz_id=?',
                    (session['user_id'], quiz_id))
     if cursor.fetchone():
+        conn.close()
         flash('You have already submitted this quiz.', 'warning')
         return redirect(url_for('browse_quizzes'))
 
-    cursor.execute('SELECT * FROM questions WHERE quiz_id=%s', (quiz_id,))
+    cursor.execute('SELECT * FROM questions WHERE quiz_id=?', (quiz_id,))
     questions = cursor.fetchall()
 
     score   = 0
@@ -324,19 +347,20 @@ def submit_quiz(quiz_id):
 
     # Save score
     cursor.execute(
-        'INSERT INTO scores (user_id, quiz_id, score, total) VALUES (%s,%s,%s,%s)',
+        'INSERT INTO scores (user_id, quiz_id, score, total) VALUES (?,?,?,?)',
         (session['user_id'], quiz_id, score, total)
     )
-    mysql.connection.commit()
+    conn.commit()
     score_id = cursor.lastrowid
 
     # Save individual answers for review + analytics
     for q, d in zip(questions, details):
         cursor.execute(
-            'INSERT INTO user_answers (score_id, question_id, chosen_option, is_correct) VALUES (%s,%s,%s,%s)',
+            'INSERT INTO user_answers (score_id, question_id, chosen_option, is_correct) VALUES (?,?,?,?)',
             (score_id, q['id'], d['chosen'], int(d['is_correct']))
         )
-    mysql.connection.commit()
+    conn.commit()
+    conn.close()
 
     # Store details in session for immediate result display
     session['result_details'] = details
@@ -349,12 +373,14 @@ def submit_quiz(quiz_id):
 @app.route('/quiz/result/<int:score_id>')
 @login_required
 def quiz_result(score_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT s.*, q.title AS quiz_title, q.time_limit
                       FROM scores s JOIN quizzes q ON q.id=s.quiz_id
-                      WHERE s.id=%s AND s.user_id=%s''',
+                      WHERE s.id=? AND s.user_id=?''',
                    (score_id, session['user_id']))
     result = cursor.fetchone()
+    conn.close()
     if not result:
         flash('Result not found.', 'danger')
         return redirect(url_for('user_dashboard'))
@@ -369,14 +395,16 @@ def quiz_result(score_id):
 @app.route('/history')
 @login_required
 def quiz_history():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT s.id, q.title AS quiz_title, s.score, s.total,
                              s.attempted_at,
-                             ROUND(s.score/s.total*100,1) AS percentage
+                             ROUND(CAST(s.score AS FLOAT)/s.total*100,1) AS percentage
                       FROM scores s JOIN quizzes q ON q.id=s.quiz_id
-                      WHERE s.user_id=%s ORDER BY s.attempted_at DESC''',
+                      WHERE s.user_id=? ORDER BY s.attempted_at DESC''',
                    (session['user_id'],))
     history = cursor.fetchall()
+    conn.close()
     return render_template('user_history.html',
                            username=session['username'],
                            history=history)
@@ -401,13 +429,15 @@ def admin_required(f):
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('SELECT COUNT(*) AS cnt FROM quizzes')
-    quiz_count = cursor.fetchone()['cnt']
+    quiz_count = dict(cursor.fetchone())['cnt']
     cursor.execute('SELECT COUNT(*) AS cnt FROM users')
-    user_count = cursor.fetchone()['cnt']
+    user_count = dict(cursor.fetchone())['cnt']
     cursor.execute('SELECT COUNT(*) AS cnt FROM scores')
-    result_count = cursor.fetchone()['cnt']
+    result_count = dict(cursor.fetchone())['cnt']
+    conn.close()
     return render_template('admin_dashboard.html',
                            quiz_count=quiz_count,
                            user_count=user_count,
@@ -427,13 +457,15 @@ def create_quiz():
         time_limit        = int(request.form.get('time_limit', 10))
         randomize         = int(request.form.get('randomize', 1))
         admin_id          = session['admin_id']
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        conn = get_db_connection()
+        cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO quizzes (title, num_questions, description, time_limit, randomize, created_by) VALUES (%s,%s,%s,%s,%s,%s)',
+            'INSERT INTO quizzes (title, num_questions, description, time_limit, randomize, created_by) VALUES (?,?,?,?,?,?)',
             (title, num_questions, description, time_limit, randomize, admin_id)
         )
-        mysql.connection.commit()
+        conn.commit()
         quiz_id = cursor.lastrowid
+        conn.close()
         flash('Quiz created! Now add questions.', 'success')
         return redirect(url_for('add_questions', quiz_id=quiz_id))
     return render_template('admin_create_quiz.html')
@@ -445,28 +477,31 @@ def create_quiz():
 @app.route('/admin/quiz/<int:quiz_id>/add-questions', methods=['GET', 'POST'])
 @admin_required
 def add_questions(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM quizzes WHERE id = %s', (quiz_id,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM quizzes WHERE id = ?', (quiz_id,))
     quiz = cursor.fetchone()
     if not quiz:
+        conn.close()
         flash('Quiz not found.', 'danger')
         return redirect(url_for('manage_quizzes'))
     if request.method == 'POST':
-        cursor.execute('SELECT COUNT(*) AS cnt FROM questions WHERE quiz_id=%s', (quiz_id,))
-        current_count = cursor.fetchone()['cnt']
+        cursor.execute('SELECT COUNT(*) AS cnt FROM questions WHERE quiz_id=?', (quiz_id,))
+        current_count = dict(cursor.fetchone())['cnt']
         if current_count >= quiz['num_questions']:
             flash(f'Limit reached! This quiz already has {current_count} questions.', 'warning')
         else:
             cursor.execute(
-                'INSERT INTO questions (quiz_id,question_text,option_a,option_b,option_c,option_d,correct_option) VALUES (%s,%s,%s,%s,%s,%s,%s)',
+                'INSERT INTO questions (quiz_id,question_text,option_a,option_b,option_c,option_d,correct_option) VALUES (?,?,?,?,?,?,?)',
                 (quiz_id, request.form['question_text'], request.form['option_a'],
                  request.form['option_b'], request.form['option_c'], request.form['option_d'],
                  request.form['correct_option'].upper())
             )
-            mysql.connection.commit()
+            conn.commit()
             flash('Question added!', 'success')
-    cursor.execute('SELECT * FROM questions WHERE quiz_id = %s', (quiz_id,))
+    cursor.execute('SELECT * FROM questions WHERE quiz_id = ?', (quiz_id,))
     questions = cursor.fetchall()
+    conn.close()
     return render_template('admin_add_questions.html', quiz=quiz, questions=questions,
                            current_count=len(questions))
 
@@ -491,13 +526,14 @@ def upload_questions(quiz_id):
     # Normalise Windows (\r\n) and old Mac (\r) line endings → \n
     content = f.read().decode('utf-8').replace('\r\n', '\n').replace('\r', '\n')
     blocks  = [b.strip() for b in content.strip().split('\n\n') if b.strip()]
-    cursor  = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     # Check remaining capacity
-    cursor.execute('SELECT * FROM quizzes WHERE id=%s', (quiz_id,))
+    cursor.execute('SELECT * FROM quizzes WHERE id=?', (quiz_id,))
     quiz = cursor.fetchone()
-    cursor.execute('SELECT COUNT(*) AS cnt FROM questions WHERE quiz_id=%s', (quiz_id,))
-    existing = cursor.fetchone()['cnt']
+    cursor.execute('SELECT COUNT(*) AS cnt FROM questions WHERE quiz_id=?', (quiz_id,))
+    existing = dict(cursor.fetchone())['cnt']
     remaining = quiz['num_questions'] - existing
 
     added = 0
@@ -509,14 +545,15 @@ def upload_questions(quiz_id):
             lines = {l.split(':', 1)[0].strip().upper(): l.split(':', 1)[1].strip()
                      for l in block.splitlines() if ':' in l}
             cursor.execute(
-                'INSERT INTO questions (quiz_id,question_text,option_a,option_b,option_c,option_d,correct_option) VALUES (%s,%s,%s,%s,%s,%s,%s)',
+                'INSERT INTO questions (quiz_id,question_text,option_a,option_b,option_c,option_d,correct_option) VALUES (?,?,?,?,?,?,?)',
                 (quiz_id, lines['Q'], lines['A'], lines['B'],
                  lines['C'], lines['D'], lines['CORRECT'].upper())
             )
             added += 1
         except Exception as e:
             flash(f'Block {i} skipped: {e}', 'warning')
-    mysql.connection.commit()
+    conn.commit()
+    conn.close()
     flash(f'{added} question(s) uploaded successfully!', 'success')
     return redirect(url_for('add_questions', quiz_id=quiz_id))
 
@@ -527,11 +564,13 @@ def upload_questions(quiz_id):
 @app.route('/admin/quizzes')
 @admin_required
 def manage_quizzes():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT q.*, COUNT(qs.id) AS question_count
                       FROM quizzes q LEFT JOIN questions qs ON qs.quiz_id=q.id
                       GROUP BY q.id ORDER BY q.created_at DESC''')
     quizzes = cursor.fetchall()
+    conn.close()
     return render_template('admin_manage_quizzes.html', quizzes=quizzes)
 
 
@@ -541,21 +580,25 @@ def manage_quizzes():
 @app.route('/admin/quiz/<int:quiz_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_quiz(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM quizzes WHERE id = %s', (quiz_id,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM quizzes WHERE id = ?', (quiz_id,))
     quiz = cursor.fetchone()
     if not quiz:
+        conn.close()
         flash('Quiz not found.', 'danger')
         return redirect(url_for('manage_quizzes'))
     if request.method == 'POST':
         cursor.execute(
-            'UPDATE quizzes SET title=%s, num_questions=%s, description=%s, time_limit=%s WHERE id=%s',
+            'UPDATE quizzes SET title=?, num_questions=?, description=?, time_limit=? WHERE id=?',
             (request.form['title'], int(request.form.get('num_questions', 10)),
              request.form.get('description',''), request.form.get('time_limit',10), quiz_id)
         )
-        mysql.connection.commit()
+        conn.commit()
+        conn.close()
         flash('Quiz updated!', 'success')
         return redirect(url_for('manage_quizzes'))
+    conn.close()
     return render_template('admin_edit_quiz.html', quiz=quiz)
 
 
@@ -565,9 +608,11 @@ def edit_quiz(quiz_id):
 @app.route('/admin/quiz/<int:quiz_id>/delete', methods=['POST'])
 @admin_required
 def delete_quiz(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('DELETE FROM quizzes WHERE id=%s', (quiz_id,))
-    mysql.connection.commit()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM quizzes WHERE id=?', (quiz_id,))
+    conn.commit()
+    conn.close()
     flash('Quiz deleted.', 'info')
     return redirect(url_for('manage_quizzes'))
 
@@ -578,11 +623,13 @@ def delete_quiz(quiz_id):
 @app.route('/admin/question/<int:q_id>/delete', methods=['POST'])
 @admin_required
 def delete_question(q_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT quiz_id FROM questions WHERE id=%s', (q_id,))
-    row = cursor.fetchone()
-    cursor.execute('DELETE FROM questions WHERE id=%s', (q_id,))
-    mysql.connection.commit()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT quiz_id FROM questions WHERE id=?', (q_id,))
+    row = dict(cursor.fetchone())
+    cursor.execute('DELETE FROM questions WHERE id=?', (q_id,))
+    conn.commit()
+    conn.close()
     flash('Question deleted.', 'info')
     return redirect(url_for('add_questions', quiz_id=row['quiz_id']))
 
@@ -593,23 +640,27 @@ def delete_question(q_id):
 @app.route('/admin/question/<int:q_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_question(q_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM questions WHERE id=%s', (q_id,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM questions WHERE id=?', (q_id,))
     question = cursor.fetchone()
     if not question:
+        conn.close()
         flash('Question not found.', 'danger')
         return redirect(url_for('manage_quizzes'))
     if request.method == 'POST':
         cursor.execute(
-            '''UPDATE questions SET question_text=%s, option_a=%s, option_b=%s,
-               option_c=%s, option_d=%s, correct_option=%s WHERE id=%s''',
+            '''UPDATE questions SET question_text=?, option_a=?, option_b=?,
+               option_c=?, option_d=?, correct_option=? WHERE id=?''',
             (request.form['question_text'], request.form['option_a'],
              request.form['option_b'], request.form['option_c'],
              request.form['option_d'], request.form['correct_option'].upper(), q_id)
         )
-        mysql.connection.commit()
+        conn.commit()
+        conn.close()
         flash('Question updated!', 'success')
         return redirect(url_for('add_questions', quiz_id=question['quiz_id']))
+    conn.close()
     return render_template('admin_edit_question.html', question=question)
 
 
@@ -619,11 +670,13 @@ def edit_question(q_id):
 @app.route('/admin/users')
 @admin_required
 def manage_users():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT u.*, COUNT(s.id) AS quizzes_taken
                       FROM users u LEFT JOIN scores s ON s.user_id=u.id
                       GROUP BY u.id ORDER BY u.created_at DESC''')
     users = cursor.fetchall()
+    conn.close()
     return render_template('admin_manage_users.html', users=users)
 
 
@@ -633,16 +686,18 @@ def manage_users():
 @app.route('/admin/results')
 @admin_required
 def admin_results():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT s.id, u.first_name, u.last_name, u.email,
                              q.title AS quiz_title,
                              s.score, s.total, s.attempted_at,
-                             ROUND(s.score/s.total*100,1) AS percentage
+                             ROUND(CAST(s.score AS FLOAT)/s.total*100,1) AS percentage
                       FROM scores s
                       JOIN users u ON u.id=s.user_id
                       JOIN quizzes q ON q.id=s.quiz_id
                       ORDER BY s.attempted_at DESC''')
     results = cursor.fetchall()
+    conn.close()
     return render_template('admin_results.html', results=results)
 
 
@@ -665,9 +720,11 @@ def send_otp():
     email = data.get('email', '').strip()
 
     # Check if the email is registered
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT id FROM users WHERE email = %s', (email,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
     user = cursor.fetchone()
+    conn.close()
 
     if not user:
         return jsonify({'success': False, 'message': 'Email not registered.'})
@@ -729,10 +786,12 @@ def reset_password():
     email           = session['otp_email']
     hashed_password = hash_password(new_password)
 
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('UPDATE users SET password = %s WHERE email = %s',
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET password = ? WHERE email = ?',
                    (hashed_password, email))
-    mysql.connection.commit()
+    conn.commit()
+    conn.close()
 
     # Clear OTP from session
     session.pop('otp', None)
@@ -749,13 +808,14 @@ def reset_password():
 @app.route('/leaderboard')
 @login_required
 def leaderboard():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     # Global: best score per user per quiz, ranked by %
     cursor.execute('''
         SELECT u.first_name, u.last_name, u.profile_picture,
                q.title AS quiz_title,
                s.score, s.total,
-               ROUND(s.score/s.total*100,1) AS percentage
+               ROUND(CAST(s.score AS FLOAT)/s.total*100,1) AS percentage
         FROM scores s
         JOIN users u  ON u.id  = s.user_id
         JOIN quizzes q ON q.id = s.quiz_id
@@ -773,18 +833,19 @@ def leaderboard():
     quiz_top = []
     selected_quiz = None
     if quiz_id:
-        cursor.execute('SELECT title FROM quizzes WHERE id=%s', (quiz_id,))
+        cursor.execute('SELECT title FROM quizzes WHERE id=?', (quiz_id,))
         selected_quiz = cursor.fetchone()
         cursor.execute('''
             SELECT u.first_name, u.last_name, u.profile_picture,
                    s.score, s.total,
-                   ROUND(s.score/s.total*100,1) AS percentage, s.attempted_at
+                   ROUND(CAST(s.score AS FLOAT)/s.total*100,1) AS percentage, s.attempted_at
             FROM scores s JOIN users u ON u.id=s.user_id
-            WHERE s.quiz_id=%s
+            WHERE s.quiz_id=?
             ORDER BY percentage DESC, s.score DESC LIMIT 20
         ''', (quiz_id,))
         quiz_top = cursor.fetchall()
-
+    
+    conn.close()
     return render_template('user_leaderboard.html',
                            global_top=global_top, quizzes=quizzes,
                            quiz_top=quiz_top, selected_quiz=selected_quiz,
@@ -806,7 +867,8 @@ def allowed_file(filename):
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     if request.method == 'POST':
         first_name = request.form.get('first_name', '').strip()
         last_name  = request.form.get('last_name',  '').strip()
@@ -823,30 +885,32 @@ def profile():
 
         if pic_filename:
             cursor.execute(
-                '''UPDATE users SET first_name=%s, last_name=%s, phone=%s,
-                   bio=%s, profile_picture=%s WHERE id=%s''',
+                '''UPDATE users SET first_name=?, last_name=?, phone=?,
+                   bio=?, profile_picture=? WHERE id=?''',
                 (first_name, last_name, phone, bio, pic_filename, session['user_id'])
             )
         else:
             cursor.execute(
-                'UPDATE users SET first_name=%s, last_name=%s, phone=%s, bio=%s WHERE id=%s',
+                'UPDATE users SET first_name=?, last_name=?, phone=?, bio=? WHERE id=?',
                 (first_name, last_name, phone, bio, session['user_id'])
             )
-        mysql.connection.commit()
+        conn.commit()
         session['username'] = first_name   # refresh navbar name
+        conn.close()
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile'))
 
-    cursor.execute('SELECT * FROM users WHERE id=%s', (session['user_id'],))
+    cursor.execute('SELECT * FROM users WHERE id=?', (session['user_id'],))
     user = cursor.fetchone()
 
     # Stats for profile page
-    cursor.execute('SELECT COUNT(*) AS cnt FROM scores WHERE user_id=%s', (session['user_id'],))
-    quiz_count = cursor.fetchone()['cnt']
-    cursor.execute('''SELECT ROUND(AVG(score/total*100),1) AS avg_pct
-                      FROM scores WHERE user_id=%s''', (session['user_id'],))
-    row = cursor.fetchone()
+    cursor.execute('SELECT COUNT(*) AS cnt FROM scores WHERE user_id=?', (session['user_id'],))
+    quiz_count = dict(cursor.fetchone())['cnt']
+    cursor.execute('''SELECT ROUND(AVG(CAST(score AS FLOAT)/total*100),1) AS avg_pct
+                      FROM scores WHERE user_id=?''', (session['user_id'],))
+    row = dict(cursor.fetchone())
     avg_pct = row['avg_pct'] if row['avg_pct'] else 0
+    conn.close()
 
     return render_template('user_profile.html', user=user,
                            quiz_count=quiz_count, avg_pct=avg_pct)
@@ -857,12 +921,14 @@ def profile():
 @app.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     user_id = session.get('user_id')
     
     # Delete the user; cascade delete will handle related records in child tables
-    cursor.execute('DELETE FROM users WHERE id=%s', (user_id,))
-    mysql.connection.commit()
+    cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
+    conn.commit()
+    conn.close()
     
     # Clear the session
     session.clear()
@@ -876,13 +942,15 @@ def delete_account():
 @app.route('/quiz/review/<int:score_id>')
 @login_required
 def quiz_review(score_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute('''SELECT s.*, q.title AS quiz_title
                       FROM scores s JOIN quizzes q ON q.id=s.quiz_id
-                      WHERE s.id=%s AND s.user_id=%s''',
+                      WHERE s.id=? AND s.user_id=?''',
                    (score_id, session['user_id']))
     result = cursor.fetchone()
     if not result:
+        conn.close()
         flash('Review not found.', 'danger')
         return redirect(url_for('quiz_history'))
 
@@ -891,10 +959,11 @@ def quiz_review(score_id):
                q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option
         FROM user_answers ua
         JOIN questions q ON q.id = ua.question_id
-        WHERE ua.score_id = %s
+        WHERE ua.score_id = ?
         ORDER BY ua.id
     ''', (score_id,))
     answers = cursor.fetchall()
+    conn.close()
 
     return render_template('user_review.html', result=result, answers=answers)
 
@@ -905,22 +974,24 @@ def quiz_review(score_id):
 @app.route('/admin/quiz/<int:quiz_id>/analytics')
 @admin_required
 def quiz_analytics(quiz_id):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM quizzes WHERE id=%s', (quiz_id,))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM quizzes WHERE id=?', (quiz_id,))
     quiz = cursor.fetchone()
     if not quiz:
+        conn.close()
         flash('Quiz not found.', 'danger')
         return redirect(url_for('manage_quizzes'))
 
     # Overall stats
     cursor.execute('''
         SELECT COUNT(*) AS attempts,
-               ROUND(AVG(score/total*100),1) AS avg_pct,
-               SUM(CASE WHEN score/total>=0.5 THEN 1 ELSE 0 END) AS passes,
+               ROUND(AVG(CAST(score AS FLOAT)/total*100),1) AS avg_pct,
+               SUM(CASE WHEN CAST(score AS FLOAT)/total>=0.5 THEN 1 ELSE 0 END) AS passes,
                MAX(score) AS top_score,
                MIN(score) AS low_score,
                total
-        FROM scores WHERE quiz_id=%s
+        FROM scores WHERE quiz_id=?
     ''', (quiz_id,))
     stats = cursor.fetchone()
 
@@ -929,14 +1000,15 @@ def quiz_analytics(quiz_id):
         SELECT q.question_text, q.correct_option,
                COUNT(ua.id)      AS total_answers,
                SUM(CASE WHEN ua.is_correct=0 THEN 1 ELSE 0 END) AS wrong_count,
-               ROUND(SUM(CASE WHEN ua.is_correct=0 THEN 1 ELSE 0 END)/COUNT(ua.id)*100,1) AS miss_rate
+               ROUND(CAST(SUM(CASE WHEN ua.is_correct=0 THEN 1 ELSE 0 END) AS FLOAT)/NULLIF(COUNT(ua.id),0)*100,1) AS miss_rate
         FROM questions q
         LEFT JOIN user_answers ua ON ua.question_id=q.id
-        WHERE q.quiz_id=%s
+        WHERE q.quiz_id=?
         GROUP BY q.id
         ORDER BY miss_rate DESC
     ''', (quiz_id,))
     question_stats = cursor.fetchall()
+    conn.close()
 
     return render_template('admin_quiz_analytics.html',
                            quiz=quiz, stats=stats, question_stats=question_stats)
