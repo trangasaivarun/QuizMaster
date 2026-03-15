@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Quiz Analytics – QuizMaster Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body>
+    <div class="admin-sidebar">
+        <div class="sidebar-brand">Quiz<span>Master</span> <small
+                style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Admin</small></div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}"><span class="icon">🏠</span> Dashboard</a>
+            <a href="{{ url_for('create_quiz') }}"><span class="icon">➕</span> Create Quiz</a>
+            <a href="{{ url_for('manage_quizzes') }}" class="active"><span class="icon">📋</span> Manage Quizzes</a>
+            <a href="{{ url_for('manage_users') }}"><span class="icon">👥</span> Manage Users</a>
+            <a href="{{ url_for('admin_results') }}"><span class="icon">📊</span> View Results</a>
+        </nav>
+        <div class="sidebar-footer"><a href="{{ url_for('logout') }}">🚪 Logout</a></div>
+    </div>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>📊 Analytics – {{ quiz.title }}</h1>
+            <a href="{{ url_for('manage_quizzes') }}" class="btn-sm-em">← All Quizzes</a>
+        </div>
+        <div class="admin-body">
+
+            <!-- Overview stats -->
+            <div class="row mb-4">
+                {% set attempts = stats.attempts or 0 %}
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div>
+                            <div class="stat-num">{{ attempts }}</div>
+                            <div class="stat-label">Total Attempts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div>
+                            <div class="stat-num">{{ stats.avg_pct or 0 }}%</div>
+                            <div class="stat-label">Avg Score</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div>
+                            <div class="stat-num">{{ stats.passes or 0 }}</div>
+                            <div class="stat-label">Passed (≥50%)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">❌</div>
+                        <div>
+                            <div class="stat-num">{{ (attempts - (stats.passes or 0)) }}</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <!-- Pass/Fail Donut Chart -->
+                <div class="col-md-4 mb-3">
+                    <div class="admin-card">
+                        <h5>Pass / Fail Rate</h5>
+                        <canvas id="passChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Miss rate bar chart -->
+                <div class="col-md-8 mb-3">
+                    <div class="admin-card">
+                        <h5>❓ Questions by Miss Rate (hardest first)</h5>
+                        <canvas id="missChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-Question Table -->
+            <div class="admin-card">
+                <h5>Question-by-Question Breakdown</h5>
+                {% if question_stats %}
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Question</th>
+                            <th>Correct Ans</th>
+                            <th>Total Answers</th>
+                            <th>Wrong</th>
+                            <th>Miss Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, q in enumerate(question_stats, 1) %}
+                        <tr>
+                            <td>{{ i }}</td>
+                            <td>{{ q.question_text[:80] }}{% if q.question_text|length > 80 %}...{% endif %}</td>
+                            <td><span class="badge-cat">{{ q.correct_option }}</span></td>
+                            <td>{{ q.total_answers or 0 }}</td>
+                            <td>{{ q.wrong_count or 0 }}</td>
+                            <td>
+                                {% set mr = q.miss_rate or 0 %}
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;">
+                                        <div
+                                            style="width:{{ mr }}%;background:{% if mr>66 %}#e53e3e{% elif mr>33 %}#ed8936{% else %}#38a169{% endif %};height:6px;border-radius:4px;">
+                                        </div>
+                                    </div>
+                                    <span style="font-weight:700;min-width:42px;">{{ mr }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center;color:#718096;padding:24px;">No answer data yet. Data appears after users
+                    take this quiz.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var passes = {{ stats.passes or 0 }};
+        var total = {{ stats.attempts or 0 }};
+        var fails = total - passes;
+
+        new Chart(document.getElementById('passChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pass', 'Fail'],
+                datasets: [{
+                    data: [passes, fails],
+                    backgroundColor: ['#38ef7d', '#fc8181'],
+                    borderColor: ['#11998e', '#e53e3e'], borderWidth: 2
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
+        });
+
+        var qLabels = [{% for q in question_stats %}"Q{{ loop.index }}"{% if not loop.last %}, {% endif %} {% endfor %}];
+        var missData = [{% for q in question_stats %}{ { q.miss_rate or 0 } } {% if not loop.last %}, {% endif %} {% endfor %}];
+
+        new Chart(document.getElementById('missChart'), {
+            type: 'bar',
+            data: {
+                labels: qLabels,
+                datasets: [{
+                    label: 'Miss Rate %', data: missData,
+                    backgroundColor: 'rgba(229,62,62,0.7)', borderColor: '#e53e3e',
+                    borderWidth: 1, borderRadius: 6
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+
+</html>

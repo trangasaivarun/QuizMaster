@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard – QuizMaster</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+</head>
+
+<body>
+    <nav class="user-navbar">
+        <div class="nav-brand">Quiz<span>Master</span></div>
+        <div class="nav-links">
+            <a href="{{ url_for('user_dashboard') }}" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.5 16h4a.5.5 0 0 0 .5-.5V11h2v4.5a.5.5 0 0 0 .5.5h4a1.5 1.5 0 0 0 1.5-1.5V7.499l-.354-.353z" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{{ url_for('browse_quizzes') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293z" />
+                </svg>
+                Quizzes
+            </a>
+            <a href="{{ url_for('leaderboard') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
+                    <path
+                        d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
+                </svg>
+                Leaderboard
+            </a>
+            <a href="{{ url_for('quiz_history') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M4 11H2v3h2zm5-4H7v7h2zm5 4h-2v3h2zm-2-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm-6 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" />
+                </svg>
+                History
+            </a>
+            <a href="{{ url_for('profile') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm1.5 1h-3A3.5 3.5 0 0 0 3 12.5V14h10v-1.5A3.5 3.5 0 0 0 9.5 9z" />
+                </svg>
+                Profile
+            </a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:3px">
+                    <path
+                        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm1.5 1h-3A3.5 3.5 0 0 0 3 12.5V14h10v-1.5A3.5 3.5 0 0 0 9.5 9z" />
+                </svg>
+                {{ username }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="nav-logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="user-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c, m in messages %}
+        <div class="alert alert-{{ c }} py-2">{{ m }}</div>
+        {% endfor %}{% endif %}{% endwith %}
+
+        <div class="user-hero">
+            <h1>Welcome back, <span>{{ username }}</span>!
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-left:4px">
+                    <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z" />
+                    <path
+                        d="M7 5.5C7 4.672 7.448 4 8 4s1 .672 1 1.5S8.552 7 8 7s-1-.672-1-1.5zM5.5 9.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z" />
+                </svg>
+            </h1>
+            <p>Ready to test your knowledge today?</p>
+            <a href="{{ url_for('browse_quizzes') }}" class="btn-em-user mt-2">Browse Quizzes →</a>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="user-card text-center">
+                    <div class="user-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293z" />
+                        </svg>
+                    </div>
+                    <div class="user-card-num">{{ quiz_count }}</div>
+                    <div class="user-card-label">Available Quizzes</div>
+                    <a href="{{ url_for('browse_quizzes') }}" class="btn-em-user mt-3">Take a Quiz</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="user-card text-center">
+                    <div class="user-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
+                            <path
+                                d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
+                        </svg>
+                    </div>
+                    <div class="user-card-num">{{ attempt_count }}</div>
+                    <div class="user-card-label">Quizzes Attempted</div>
+                    <a href="{{ url_for('quiz_history') }}" class="btn-em-user mt-3">View History</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="user-card text-center">
+                    <div class="user-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                        </svg>
+                    </div>
+                    {% if last_attempt %}
+                    <div class="user-card-num">{{ last_attempt.score }}/{{ last_attempt.total }}</div>
+                    <div class="user-card-label">Last: {{ last_attempt.title[:18] }}</div>
+                    {% else %}
+                    <div class="user-card-num">—</div>
+                    <div class="user-card-label">No attempts yet</div>
+                    {% endif %}
+                    <a href="{{ url_for('leaderboard') }}" class="btn-em-user mt-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                            viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px">
+                            <path
+                                d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
+                            <path
+                                d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
+                        </svg>
+                        Leaderboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick links row -->
+        <div class="row mt-2">
+            <div class="col-6 col-md-3 mb-3">
+                <a href="{{ url_for('browse_quizzes') }}" class="user-card d-block text-center"
+                    style="text-decoration:none;padding:16px;">
+                    <div style="font-size:1.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#11998e"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293z" />
+                        </svg>
+                    </div>
+                    <div style="font-size:0.85rem;color:#4a5568;margin-top:6px;">Browse Quizzes</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+                <a href="{{ url_for('leaderboard') }}" class="user-card d-block text-center"
+                    style="text-decoration:none;padding:16px;">
+                    <div style="font-size:1.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#11998e"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
+                            <path
+                                d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
+                        </svg>
+                    </div>
+                    <div style="font-size:0.85rem;color:#4a5568;margin-top:6px;">Leaderboard</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+                <a href="{{ url_for('quiz_history') }}" class="user-card d-block text-center"
+                    style="text-decoration:none;padding:16px;">
+                    <div style="font-size:1.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#11998e"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M4 11H2v3h2zm5-4H7v7h2zm5 4h-2v3h2zm-2-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm-6 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" />
+                        </svg>
+                    </div>
+                    <div style="font-size:0.85rem;color:#4a5568;margin-top:6px;">My History</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+                <a href="{{ url_for('profile') }}" class="user-card d-block text-center"
+                    style="text-decoration:none;padding:16px;">
+                    <div style="font-size:1.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#11998e"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm1.5 1h-3A3.5 3.5 0 0 0 3 12.5V14h10v-1.5A3.5 3.5 0 0 0 9.5 9z" />
+                        </svg>
+                    </div>
+                    <div style="font-size:0.85rem;color:#4a5568;margin-top:6px;">My Profile</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

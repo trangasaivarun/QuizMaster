@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Add Questions – QuizMaster Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        .progress-bar-em {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .limit-reached-banner {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-radius: 12px;
+            padding: 18px 24px;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-sidebar">
+        <div class="sidebar-brand">Quiz<span>Master</span> <small
+                style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Admin</small></div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg"
+                        width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.5 16h4a.5.5 0 0 0 .5-.5V11h2v4.5a.5.5 0 0 0 .5.5h4a1.5 1.5 0 0 0 1.5-1.5V7.499l-.354-.353z" />
+                    </svg></span> Dashboard</a>
+            <a href="{{ url_for('create_quiz') }}"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                        height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                    </svg></span> Create Quiz</a>
+            <a href="{{ url_for('manage_quizzes') }}" class="active"><span class="icon"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z" />
+                        <path
+                            d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+                        <path
+                            d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+                    </svg></span> Manage Quizzes</a>
+            <a href="{{ url_for('manage_users') }}"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg"
+                        width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                    </svg></span> Manage Users</a>
+            <a href="{{ url_for('admin_results') }}"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg"
+                        width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M4 11H2v3h2zm5-4H7v7h2zm5 4h-2v3h2zm-2-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm-6 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" />
+                    </svg></span> View Results</a>
+        </nav>
+        <div class="sidebar-footer"><a href="{{ url_for('logout') }}"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                    height="14" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:4px">
+                    <path fill-rule="evenodd"
+                        d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                    <path fill-rule="evenodd"
+                        d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                </svg> Logout</a></div>
+    </div>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>Add Questions – <span style="color:#11998e;">{{ quiz.title }}</span></h1>
+            <a href="{{ url_for('manage_quizzes') }}" class="btn-sm-em">← All Quizzes</a>
+        </div>
+        <div class="admin-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for c, m in messages %}
+            <div class="alert alert-{{ c }} py-2">{{ m }}</div>
+            {% endfor %}{% endif %}{% endwith %}
+
+            <!-- ===== Progress Bar ===== -->
+            {% set limit = quiz.num_questions %}
+            {% set pct = [(current_count / limit * 100)|int, 100]|min %}
+            <div class="admin-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Questions: {{ current_count }} / {{ limit }}</strong>
+                    {% if current_count >= limit %}
+                    <span class="badge-pass">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor"
+                            viewBox="0 0 16 16" style="vertical-align:middle">
+                            <path
+                                d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                        Limit Reached
+                    </span>
+                    {% else %}
+                    <span style="color:#718096;font-size:0.88rem;">{{ limit - current_count }} more needed</span>
+                    {% endif %}
+                </div>
+                <div class="progress" style="height:10px;border-radius:8px;">
+                    <div class="progress-bar progress-bar-em" style="width:{{ pct }}%; border-radius:8px;"
+                        role="progressbar"></div>
+                </div>
+            </div>
+
+            <!-- ===== Limit Reached Banner ===== -->
+            {% if current_count >= limit %}
+            <div class="limit-reached-banner">
+                <div>
+                    <strong style="font-size:1.1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16" style="vertical-align:middle;margin-right:4px">
+                            <path
+                                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                        </svg>
+                        All {{ limit }} questions added!
+                    </strong>
+                    <p style="margin:4px 0 0;font-size:0.9rem;opacity:0.9;">Your quiz is ready. You can still edit or
+                        delete individual questions anytime.</p>
+                </div>
+                <a href="{{ url_for('manage_quizzes') }}" class="btn btn-light font-weight-bold px-4">Done →</a>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <!-- ===== Manual Entry — only shown if limit not reached ===== -->
+                {% if current_count < limit %} <div class="col-md-6 mb-4">
+                    <div class="admin-card">
+                        <h5>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="#11998e"
+                                viewBox="0 0 16 16" style="vertical-align:middle;margin-right:4px">
+                                <path
+                                    d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z" />
+                            </svg>
+                            Add Question Manually
+                        </h5>
+                        <form method="POST" action="{{ url_for('add_questions', quiz_id=quiz.id) }}" class="admin-form">
+                            <div class="form-group">
+                                <label>Question *</label>
+                                <textarea name="question_text" class="form-control" rows="2"
+                                    placeholder="Enter the question..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Option A *</label>
+                                <input type="text" name="option_a" class="form-control" placeholder="Option A" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Option B *</label>
+                                <input type="text" name="option_b" class="form-control" placeholder="Option B" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Option C *</label>
+                                <input type="text" name="option_c" class="form-control" placeholder="Option C" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Option D *</label>
+                                <input type="text" name="option_d" class="form-control" placeholder="Option D" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Correct Answer *</label>
+                                <select name="correct_option" class="form-control" required>
+                                    <option value="" disabled selected>Select correct option</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-em">Add Question</button>
+                        </form>
+                    </div>
+            </div>
+
+            <!-- ===== File Upload ===== -->
+            <div class="col-md-6 mb-4">
+                <div class="admin-card">
+                    <h5>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="#11998e"
+                            viewBox="0 0 16 16" style="vertical-align:middle;margin-right:4px">
+                            <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
+                        </svg>
+                        Upload from .txt File
+                    </h5>
+                    <p style="color:#718096;font-size:0.88rem;">Each question separated by a blank line:</p>
+                    <pre
+                        style="background:#f7fff7;border:1px solid #b2d8d8;border-radius:8px;padding:12px;font-size:0.8rem;color:#2d6a4f;">Q: Question here
+A: Option A
+B: Option B
+C: Option C
+D: Option D
+Correct: B</pre>
+                    <form method="POST" action="{{ url_for('upload_questions', quiz_id=quiz.id) }}"
+                        enctype="multipart/form-data" class="mt-3">
+                        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                            <span style="font-size:2rem">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#11998e"
+                                    viewBox="0 0 16 16">
+                                    <path
+                                        d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM4.5 9a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zm0 2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zm0 2a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1h-4z" />
+                                </svg>
+                            </span>
+                            <p>Click to select your .txt file</p>
+                            <input type="file" id="fileInput" name="file" accept=".txt" style="display:none"
+                                onchange="document.getElementById('fileName').textContent=this.files[0].name">
+                            <p id="fileName" style="color:#11998e;font-weight:600;margin-top:6px;"></p>
+                        </div>
+                        <button type="submit" class="btn-em mt-3 w-100">Upload Questions</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== Existing Questions List ===== -->
+        <div class="admin-card">
+            <h5>📋 Questions Added ({{ current_count }}/{{ limit }})</h5>
+            {% if questions %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Question</th>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>C</th>
+                        <th>D</th>
+                        <th>Answer</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i, q in enumerate(questions, 1) %}
+                    <tr>
+                        <td>{{ i }}</td>
+                        <td>{{ q.question_text }}</td>
+                        <td>{{ q.option_a }}</td>
+                        <td>{{ q.option_b }}</td>
+                        <td>{{ q.option_c }}</td>
+                        <td>{{ q.option_d }}</td>
+                        <td><span class="badge-cat">{{ q.correct_option }}</span></td>
+                        <td>
+                            <a href="{{ url_for('edit_question', q_id=q.id) }}" class="btn-sm-em mr-1">Edit</a>
+                            <form method="POST" action="{{ url_for('delete_question', q_id=q.id) }}"
+                                style="display:inline" onsubmit="return confirm('Delete this question?')">
+                                <button type="submit" class="btn-danger-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color:#718096;text-align:center;padding:20px 0;">No questions yet. Add some above!</p>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

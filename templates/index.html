@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container register">
+        <div class="row">
+
+            <!-- ===== Left Panel ===== -->
+            <div class="col-md-3 register-left">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" onerror="this.style.display='none'"
+                    alt="QuizMaster Logo" />
+                <h3>Welcome</h3>
+                <p>Test your knowledge with our interactive quiz platform!</p>
+                <input type="button" id="leftRegisterBtn" value="Register" onclick="goToRegister()" /><br />
+            </div>
+
+            <!-- ===== Right Panel ===== -->
+            <div class="col-md-9 register-right">
+
+                <!-- Tabs: User | Admin -->
+                <ul class="nav nav-tabs nav-justified" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="user-tab" data-toggle="tab" href="#user" role="tab"
+                            aria-controls="user" aria-selected="true">User</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab"
+                            aria-controls="admin" aria-selected="false">Admin</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content fixed-tab-content" id="myTabContent">
+
+                    <!-- ===== USER TAB ===== -->
+                    <div class="tab-pane fade show active" id="user" role="tabpanel" aria-labelledby="user-tab">
+
+                        <!-- ---- User Login Form ---- -->
+                        <div id="userLoginForm">
+                            <h3 class="register-heading">User Login</h3>
+                            <div class="row register-form">
+                                <div class="col-md-6 offset-md-3">
+                                    <!-- Flash messages -->
+                                    {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                    {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                    {% endwith %}
+                                    <form method="POST" action="{{ url_for('login') }}">
+                                        <div class="form-group">
+                                            <input type="email" name="email" class="form-control" placeholder="Email *"
+                                                required />
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="password" class="form-control"
+                                                placeholder="Password *" required />
+                                        </div>
+                                        <input type="submit" class="btnRegister w-100" value="Login" />
+                                    </form>
+                                    <p class="text-center mt-2" style="color:#6c757d; font-size:0.85rem;">
+                                        <a href="#" onclick="showForgotPassword()" style="color:#11998e;">Forgot
+                                            Password?</a>
+                                    </p>
+                                    <p class="text-center" style="color:#6c757d; font-size:0.85rem;">
+                                        Don't have an account?
+                                        <a href="#" onclick="showUserRegister()" style="color:#11998e;">Register
+                                            here</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ---- User Register Form ---- -->
+                        <div id="userRegisterForm" style="display:none;">
+                            <h3 class="register-heading">Create User Account</h3>
+                            <div class="row register-form">
+                                <div class="col-md-6">
+                                    <form method="POST" action="{{ url_for('register') }}" id="regForm">
+                                        <div class="form-group">
+                                            <input type="text" name="first_name" class="form-control"
+                                                placeholder="First Name *" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="last_name" class="form-control"
+                                                placeholder="Last Name *" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="password" class="form-control"
+                                                placeholder="Password *" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="confirm_password" class="form-control"
+                                                placeholder="Confirm Password *" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="maxl">
+                                                <label class="radio inline">
+                                                    <input type="radio" name="gender" value="male" checked>
+                                                    <span> Male </span>
+                                                </label>
+                                                <label class="radio inline">
+                                                    <input type="radio" name="gender" value="female">
+                                                    <span>Female </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <input type="email" name="email" class="form-control" placeholder="Your Email *"
+                                            required />
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" name="phone" minlength="10" maxlength="10"
+                                            class="form-control" placeholder="Your Phone *" required />
+                                    </div>
+                                    <input type="submit" class="btnRegister" value="Register" />
+                                    </form>
+                                </div>
+                            </div>
+                            <p class="text-center mt-1" style="color:#6c757d; font-size:0.85rem;">
+                                Already have an account?
+                                <a href="#" onclick="showUserLogin()" style="color:#11998e;">Login here</a>
+                            </p>
+                        </div>
+
+                        <!-- ---- Forgot Password: Step 1 ---- -->
+                        <div id="forgotStep1" style="display:none;">
+                            <h3 class="register-heading">Forgot Password</h3>
+                            <div class="row register-form">
+                                <div class="col-md-6 offset-md-3">
+                                    <p class="text-center" style="color:#6c757d; font-size:0.88rem;">
+                                        Enter your registered email. We'll send an OTP to reset your password.
+                                    </p>
+                                    <div class="form-group">
+                                        <input type="email" id="forgotEmail" class="form-control"
+                                            placeholder="Registered Email *" />
+                                    </div>
+                                    <input type="button" class="btnRegister w-100" value="Send OTP"
+                                        onclick="sendOTP()" />
+                                    <p class="text-center mt-2" style="font-size:0.85rem;">
+                                        <a href="#" onclick="showUserLogin()" style="color:#11998e;">← Back to Login</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ---- Forgot Password: Step 2 ---- -->
+                        <div id="forgotStep2" style="display:none;">
+                            <h3 class="register-heading">Verify OTP</h3>
+                            <div class="row register-form">
+                                <div class="col-md-6 offset-md-3">
+                                    <p class="text-center" style="color:#6c757d; font-size:0.88rem;">
+                                        An OTP has been sent to your email. Enter it below with your new password.
+                                    </p>
+                                    <div class="form-group">
+                                        <input type="text" id="otpInput" class="form-control" placeholder="Enter OTP *"
+                                            maxlength="6" />
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" id="newPassword" class="form-control"
+                                            placeholder="New Password *" />
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" id="confirmNewPassword" class="form-control"
+                                            placeholder="Confirm New Password *" />
+                                    </div>
+                                    <input type="button" class="btnRegister w-100" value="Reset Password"
+                                        onclick="resetPassword()" />
+                                    <p class="text-center mt-2" style="font-size:0.85rem;">
+                                        <a href="#" onclick="resendOTP()" style="color:#11998e;">Resend OTP</a>
+                                        &nbsp;|&nbsp;
+                                        <a href="#" onclick="showUserLogin()" style="color:#11998e;">← Back to Login</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- ===== END USER TAB ===== -->
+
+                    <!-- ===== ADMIN TAB ===== -->
+                    <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+                        <h3 class="register-heading">Admin Login</h3>
+                        <div class="row register-form">
+                            <div class="col-md-6 offset-md-3">
+                                <form method="POST" action="{{ url_for('admin_login') }}">
+                                    <div class="form-group">
+                                        <input type="email" name="email" class="form-control"
+                                            placeholder="Admin Email *" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" name="password" class="form-control"
+                                            placeholder="Password *" required />
+                                    </div>
+                                    <input type="submit" class="btnRegister w-100" value="Login as Admin" />
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===== END ADMIN TAB ===== -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* -------- View Switchers -------- */
+        function hideAllUserViews() {
+            document.getElementById('userLoginForm').style.display = 'none';
+            document.getElementById('userRegisterForm').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'none';
+        }
+
+        function showUserLogin() {
+            hideAllUserViews();
+            document.getElementById('userLoginForm').style.display = 'block';
+            document.getElementById('leftRegisterBtn').value = 'Register';
+            document.getElementById('leftRegisterBtn').onclick = goToRegister;
+        }
+
+        function showUserRegister() {
+            hideAllUserViews();
+            document.getElementById('userRegisterForm').style.display = 'block';
+            document.getElementById('leftRegisterBtn').value = 'Login';
+            document.getElementById('leftRegisterBtn').onclick = showUserLogin;
+        }
+
+        function showForgotPassword() {
+            hideAllUserViews();
+            document.getElementById('forgotStep1').style.display = 'block';
+        }
+
+        function goToRegister() {
+            $('#user-tab').tab('show');
+            showUserRegister();
+        }
+
+        /* -------- OTP Logic (calls Flask backend) -------- */
+
+        function sendOTP() {
+            var email = document.getElementById('forgotEmail').value.trim();
+            if (!email) { alert('Please enter your registered email.'); return; }
+
+            fetch('/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('OTP sent to ' + email + '. Please check your inbox.');
+                        hideAllUserViews();
+                        document.getElementById('forgotStep2').style.display = 'block';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(() => alert('Could not connect to server. Please try again.'));
+        }
+
+        function resendOTP() {
+            sendOTP();
+        }
+
+        function resetPassword() {
+            var otp = document.getElementById('otpInput').value.trim();
+            var newPass = document.getElementById('newPassword').value;
+            var confPass = document.getElementById('confirmNewPassword').value;
+
+            if (!otp) { alert('Please enter the OTP.'); return; }
+            if (!newPass) { alert('Please enter a new password.'); return; }
+            if (newPass !== confPass) { alert('Passwords do not match.'); return; }
+
+            fetch('/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: otp, new_password: newPass })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Password reset successful! You can now login.');
+                        showUserLogin();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(() => alert('Could not connect to server. Please try again.'));
+        }
+
+        // Check if we should auto-open register form (from landing page Register click)
+        window.onload = function () {
+            if (sessionStorage.getItem('showRegister') === 'true') {
+                sessionStorage.removeItem('showRegister');
+                goToRegister();
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,449 @@
+/* ================================================================
+   User Panel Shared Styles – static/css/user.css
+   Emerald theme
+   ================================================================ */
+
+:root {
+    --em-dark: #11998e;
+    --em-light: #38ef7d;
+    --em-grad: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+body {
+    background: #f4f7f4;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+/* ---- Navbar ---- */
+.user-navbar {
+    background: #1a2a1a;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.nav-brand {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    margin-right: 32px;
+}
+
+.nav-brand span {
+    color: var(--em-light);
+}
+
+.nav-links {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background: rgba(56, 239, 125, 0.12);
+    color: var(--em-light);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.nav-user {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.88rem;
+}
+
+.nav-logout {
+    color: #ff6b6b;
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 5px 12px;
+    border: 1px solid #ff6b6b;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-logout:hover {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+/* ---- Body container ---- */
+.user-body {
+    padding: 28px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* ---- Hero ---- */
+.user-hero {
+    background: var(--em-grad);
+    border-radius: 16px;
+    padding: 32px 36px;
+    color: #fff;
+    margin-bottom: 24px;
+}
+
+.user-hero h1 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.user-hero h1 span {
+    color: #d4fff0;
+}
+
+.user-hero p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+}
+
+/* ---- Cards ---- */
+.user-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border-top: 4px solid var(--em-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.user-card-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a2a1a;
+}
+
+.user-card-label {
+    color: #718096;
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+/* ---- Emerald button ---- */
+.btn-em-user {
+    background: var(--em-grad);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 22px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.btn-em-user:hover {
+    opacity: 0.85;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ---- Quiz list card ---- */
+.quiz-list-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 4px solid var(--em-dark);
+}
+
+.quiz-list-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-info h5 {
+    font-weight: 700;
+    color: #1a2a1a;
+    margin: 0 0 4px;
+}
+
+.quiz-meta {
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+.quiz-meta span {
+    margin-right: 12px;
+}
+
+/* ---- Take Quiz page ---- */
+.quiz-container {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.timer-bar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+    position: sticky;
+    top: 68px;
+    z-index: 50;
+}
+
+.timer-display {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--em-dark);
+    background: rgba(17, 153, 142, 0.1);
+    padding: 6px 18px;
+    border-radius: 8px;
+}
+
+.timer-display.warning {
+    color: #e53e3e;
+    background: rgba(229, 62, 62, 0.1);
+}
+
+.question-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    margin-bottom: 18px;
+}
+
+.question-card .q-num {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--em-dark);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.question-card .q-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1a2a1a;
+    margin-bottom: 16px;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.93rem;
+}
+
+.option-label:hover {
+    border-color: var(--em-dark);
+    background: rgba(17, 153, 142, 0.05);
+}
+
+.option-label input[type=radio] {
+    accent-color: var(--em-dark);
+    width: 18px;
+    height: 18px;
+}
+
+.option-label.selected {
+    border-color: var(--em-dark);
+    background: rgba(17, 153, 142, 0.08);
+}
+
+.option-key {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--em-grad);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ---- Result page ---- */
+.result-hero {
+    text-align: center;
+    padding: 40px 20px 28px;
+}
+
+.result-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: var(--em-grad);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 32px rgba(17, 153, 142, 0.35);
+}
+
+.result-circle .score-num {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+}
+
+.result-circle .score-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.result-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #e2e8f0;
+}
+
+.result-card.correct {
+    border-left-color: #38a169;
+}
+
+.result-card.wrong {
+    border-left-color: #e53e3e;
+}
+
+.result-card .r-question {
+    font-weight: 600;
+    color: #1a2a1a;
+    margin-bottom: 10px;
+}
+
+.opt-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.opt-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #f0f4f0;
+    color: #4a5568;
+}
+
+.opt-chip.correct-ans {
+    background: #c6f6d5;
+    color: #276749;
+}
+
+.opt-chip.wrong-ans {
+    background: #fed7d7;
+    color: #9b2c2c;
+}
+
+/* ---- History table ---- */
+.history-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    background: #f7fafc;
+    color: #4a5568;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.history-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f4f0;
+    font-size: 0.88rem;
+    color: #2d3748;
+}
+
+.history-table tr:hover td {
+    background: #f7fff7;
+}
+
+.badge-pass {
+    background: #c6f6d5;
+    color: #276749;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-fail {
+    background: #fed7d7;
+    color: #9b2c2c;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-cat {
+    background: rgba(17, 153, 142, 0.12);
+    color: var(--em-dark);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+}

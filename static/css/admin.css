@@ -1,0 +1,331 @@
+/* ================================================================
+   Admin Panel Shared Styles  –  static/css/admin.css
+   Emerald theme matching the site design
+   ================================================================ */
+
+:root {
+    --em-dark: #11998e;
+    --em-light: #38ef7d;
+    --sidebar-w: 240px;
+    --dark-bg: #1a2a1a;
+}
+
+body {
+    background: #f4f7f4;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+/* ---- Sidebar ---- */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--dark-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    padding: 24px 20px 16px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand span {
+    color: var(--em-light);
+}
+
+.sidebar-nav {
+    padding: 12px 0;
+    flex: 1;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px;
+    color: rgba(255, 255, 255, 0.70);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: rgba(56, 239, 125, 0.12);
+    color: var(--em-light);
+    border-left: 3px solid var(--em-light);
+}
+
+.sidebar-nav a .icon {
+    font-size: 1.15rem;
+    width: 22px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-footer a {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.sidebar-footer a:hover {
+    color: #ff6b6b;
+}
+
+/* ---- Main content area ---- */
+.admin-main {
+    margin-left: var(--sidebar-w);
+    min-height: 100vh;
+    padding: 0;
+}
+
+.admin-topbar {
+    background: #fff;
+    padding: 16px 32px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-topbar h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1a2a1a;
+}
+
+.admin-body {
+    padding: 28px 32px;
+}
+
+/* ---- Summary stat cards ---- */
+.stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-left: 4px solid var(--em-dark);
+}
+
+.stat-card .stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--em-dark), var(--em-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-num {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1a2a1a;
+}
+
+.stat-card .stat-label {
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+/* ---- Panel / Card ---- */
+.admin-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.admin-card h5 {
+    font-weight: 700;
+    color: #1a2a1a;
+    margin-bottom: 20px;
+    font-size: 1.05rem;
+}
+
+/* ---- Emerald button ---- */
+.btn-em {
+    background: linear-gradient(135deg, var(--em-dark), var(--em-light));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 22px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.btn-em:hover {
+    opacity: 0.88;
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-sm-em {
+    background: var(--em-dark);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-sm-em:hover {
+    color: #fff;
+    text-decoration: none;
+    background: #0d7a72;
+}
+
+.btn-danger-sm {
+    background: #e53e3e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.btn-danger-sm:hover {
+    background: #c53030;
+}
+
+/* ---- Form inputs ---- */
+.admin-form .form-control {
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+}
+
+.admin-form .form-control:focus {
+    border-color: var(--em-dark);
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.15);
+}
+
+.admin-form label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #4a5568;
+}
+
+/* ---- Table ---- */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    background: #f7fafc;
+    color: #4a5568;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f4f0;
+    font-size: 0.88rem;
+    color: #2d3748;
+    vertical-align: middle;
+}
+
+.admin-table tr:hover td {
+    background: #f7fff7;
+}
+
+/* ---- Badge ---- */
+.badge-cat {
+    background: rgba(17, 153, 142, 0.12);
+    color: var(--em-dark);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-pass {
+    background: #c6f6d5;
+    color: #276749;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-fail {
+    background: #fed7d7;
+    color: #9b2c2c;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+/* ---- Upload box ---- */
+.upload-box {
+    border: 2px dashed #b2d8d8;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #f0fafa;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.upload-box:hover {
+    border-color: var(--em-dark);
+}
+
+.upload-box p {
+    color: #718096;
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+}
+
+/* ---- Alerts ---- */
+.alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .admin-main {
+        margin-left: 0;
+    }
+}

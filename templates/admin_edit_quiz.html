@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Edit Quiz – QuizMaster Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body>
+    <div class="admin-sidebar">
+        <div class="sidebar-brand">Quiz<span>Master</span> <small
+                style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Admin</small></div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}">
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.5 16h4a.5.5 0 0 0 .5-.5V11h2v4.5a.5.5 0 0 0 .5.5h4a1.5 1.5 0 0 0 1.5-1.5V7.499l-.354-.353z" />
+                    </svg></span>
+                Dashboard
+            </a>
+            <a href="{{ url_for('create_quiz') }}">
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                    </svg></span>
+                Create Quiz
+            </a>
+            <a href="{{ url_for('manage_quizzes') }}" class="active">
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z" />
+                        <path
+                            d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+                        <path
+                            d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+                    </svg></span>
+                Manage Quizzes
+            </a>
+            <a href="{{ url_for('manage_users') }}">
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                    </svg></span>
+                Manage Users
+            </a>
+            <a href="{{ url_for('admin_results') }}">
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M4 11H2v3h2zm5-4H7v7h2zm5 4h-2v3h2zm-2-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm-6 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" />
+                    </svg></span>
+                View Results
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"
+                    style="vertical-align:middle;margin-right:4px">
+                    <path fill-rule="evenodd"
+                        d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                    <path fill-rule="evenodd"
+                        d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                </svg>
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>Edit Quiz</h1>
+            <a href="{{ url_for('manage_quizzes') }}" class="btn-sm-em">← All Quizzes</a>
+        </div>
+        <div class="admin-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for c, m in messages %}
+            <div class="alert alert-{{ c }} py-2">{{ m }}</div>
+            {% endfor %}{% endif %}{% endwith %}
+
+            <div class="admin-card" style="max-width:600px;">
+                <h5>Edit: {{ quiz.title }}</h5>
+                <form method="POST" action="{{ url_for('edit_quiz', quiz_id=quiz.id) }}" class="admin-form">
+                    <div class="form-group">
+                        <label>Quiz Title *</label>
+                        <input type="text" name="title" class="form-control" value="{{ quiz.title }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Questions *</label>
+                        <input type="number" name="num_questions" class="form-control" value="{{ quiz.num_questions }}"
+                            min="1" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Time Limit (minutes) *</label>
+                        <input type="number" name="time_limit" class="form-control" value="{{ quiz.time_limit }}"
+                            min="1" max="120" required>
+                        <small style="color:#718096;">Single countdown timer for the entire quiz.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Randomize Questions &amp; Options</label>
+                        <select name="randomize" class="form-control">
+                            <option value="1" {% if quiz.randomize %}selected{% endif %}>Yes – shuffle each attempt
+                            </option>
+                            <option value="0" {% if not quiz.randomize %}selected{% endif %}>No – fixed order</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control"
+                            rows="3">{{ quiz.description or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn-em">Save Changes</button>
+                    <a href="{{ url_for('manage_quizzes') }}" class="btn btn-outline-secondary ml-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
