@@ -1,12 +1,12 @@
 # QuizMaster
 
-QuizMaster is a dynamic and interactive quiz web application built with Python, Flask, and MySQL. It allows users to take quizzes, tracks scores, and provides an engaging platform for testing knowledge. The application features user authentication, a timer for quizzes, leaderboards, and an admin dashboard for managing quiz content and viewing analytics.
+QuizMaster is a dynamic and interactive quiz web application built with Python, Flask, and SQLite. It allows users to take quizzes, tracks scores, and provides an engaging platform for testing knowledge. The application features user authentication, a timer for quizzes, leaderboards, and an admin dashboard for managing quiz content and viewing analytics.
 
 ## Technologies Used
-- **Backend:** Python, Flask, Flask-MySQLdb
-- **Database:** MySQL
+- **Backend:** Python, Flask
+- **Database:** SQLite
 - **Frontend:** HTML5, CSS3, JavaScript
-- **Additional:** Werkzeug for password hashing
+- **Additional:** Werkzeug for secure forms
 
 ## Features
 - User registration and login
@@ -20,7 +20,6 @@ QuizMaster is a dynamic and interactive quiz web application built with Python, 
 
 ### Prerequisites
 - Python 3.8+
-- MySQL Server
 - Git
 
 ### Installation
@@ -31,17 +30,16 @@ QuizMaster is a dynamic and interactive quiz web application built with Python, 
    ```
 
 2. **Set up the Database:**
-   - Log in to your MySQL server.
-   - Run the provided `schema.sql` file to create the `quiz_app` database and necessary tables.
-     ```sql
-     SOURCE /path/to/schema.sql;
+   - Run the provided `init_db.py` file to create the `quizmaster.db` SQLite database and necessary tables.
+     ```bash
+     python init_db.py
      ```
-   - Update the database credentials in `app.py` (e.g., `app.config['MYSQL_USER']`, `app.config['MYSQL_PASSWORD']`).
+   - This will automatically create an admin user: `admin@quizmaster.com` (Password: `admin123`).
 
 3. **Install Dependencies:**
    Create a virtual environment (optional but recommended) and install the required Python packages.
    ```bash
-   pip install flask flask-mysqldb werkzeug
+   pip install flask werkzeug
    ```
 
 4. **Run the Application:**
@@ -77,17 +75,6 @@ QuizMaster/
     ├── admin_dashboard.html# Administrator interface
     └── ...                 # Other template files
 ```
-
-## Deploying to Render
-Render is an excellent platform for hosting this Flask application. Follow these best practices to deploy successfully:
-
-1. **Database Hosting**: Create a managed MySQL database (Render does not support managed MySQL directly, so you can use a service like Aiven, PlanetScale, or Railway for the database) and get the connection URL.
-2. **Update Database URI**: In `app.py`, it's best to use environment variables for database credentials so they aren't hardcoded in GitHub. (e.g., `os.environ.get('MYSQL_HOST')`).
-3. **Web Service Setup**: 
-   - Create a new **Web Service** on Render and connect your GitHub repository.
-   - Set the **Build Command** to: `pip install -r requirements.txt`
-   - Set the **Start Command** to: `gunicorn app:app` (This uses the production application server included in the requirements).
-4. **Environment Variables**: Add your database credentials and secret keys to the Render Environment Variables tab.
 
 ## Contributing
 Contributions are welcome! If you would like to improve QuizMaster, please follow these steps:
