@@ -1,0 +1,69 @@
+Q: What is the capital of India?
+A: Mumbai
+B: New Delhi
+C: Chennai
+D: Kolkata
+Correct: B
+
+Q: Which planet is known as the Red Planet?
+A: Venus
+B: Jupiter
+C: Mars
+D: Saturn
+Correct: C
+
+Q: What is 12 x 12?
+A: 124
+B: 144
+C: 132
+D: 148
+Correct: B
+
+Q: Who invented the telephone?
+A: Thomas Edison
+B: Nikola Tesla
+C: Alexander Graham Bell
+D: Albert Einstein
+Correct: C
+
+Q: Which gas do plants absorb from the atmosphere?
+A: Oxygen
+B: Nitrogen
+C: Hydrogen
+D: Carbon Dioxide
+Correct: D
+
+Q: What is the largest ocean on Earth?
+A: Atlantic Ocean
+B: Indian Ocean
+C: Arctic Ocean
+D: Pacific Ocean
+Correct: D
+
+Q: How many sides does a hexagon have?
+A: 5
+B: 6
+C: 7
+D: 8
+Correct: B
+
+Q: Which programming language is Flask written in?
+A: Java
+B: C++
+C: Python
+D: Ruby
+Correct: C
+
+Q: What does HTML stand for?
+A: Hyper Text Makeup Language
+B: Hyper Text Markup Language
+C: High Text Markup Language
+D: Hyper Transfer Markup Language
+Correct: B
+
+Q: Which country won the FIFA World Cup 2022?
+A: Brazil
+B: France
+C: Germany
+D: Argentina
+Correct: D
