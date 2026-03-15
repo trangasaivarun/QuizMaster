@@ -53,3 +53,38 @@ QuizMaster is a dynamic and interactive quiz web application built with Python, 
 
 ### Sample Questions
 You can use the provided `sample_questions.txt` to quickly populate the database with some initial quiz content via the admin dashboard or by importing it directly if you write a script.
+
+## Usage
+1. Open your web browser and navigate to `http://127.0.0.1:5000/`.
+2. Register for a new account or log in if you already have one.
+3. Once logged in, you can start a new quiz from the dashboard.
+4. Admins can access the designated admin dashboard to create, edit, or delete quiz questions and view user analytics.
+
+## Project Structure
+```text
+QuizMaster/
+│
+├── app.py                  # Main Flask application file
+├── schema.sql              # Database schema definition
+├── sample_questions.txt    # Sample questions for population
+├── static/                 # Static assets (CSS, JavaScript, images)
+│   └── css/                
+│       └── styles.css      # Custom styling
+└── templates/              # HTML templates
+    ├── index.html          # Login/Registration page
+    ├── base.html           # Base template layout
+    ├── dashboard.html      # User dashboard
+    ├── admin_dashboard.html# Administrator interface
+    └── ...                 # Other template files
+```
+
+## Contributing
+Contributions are welcome! If you would like to improve QuizMaster, please follow these steps:
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix (`git checkout -b feature-name`).
+3. Commit your changes (`git commit -m "Added a new feature"`).
+4. Push to the branch (`git push origin feature-name`).
+5. Open a Pull Request.
+
+## License
+This project is open-source and available under the [MIT License](LICENSE).
