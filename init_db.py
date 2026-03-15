@@ -3,8 +3,8 @@ import os
 
 # Script to initialize the SQLite database using the schema.sql file
 
-DB_FILE = 'quizmaster.db'
-SCHEMA_FILE = 'schema.sql'
+DB_FILE = os.path.join(os.path.dirname(__file__), 'quizmaster.db')
+SCHEMA_FILE = os.path.join(os.path.dirname(__file__), 'schema.sql')
 
 def init_db():
     print(f"Initializing database from {SCHEMA_FILE}...")

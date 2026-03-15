@@ -9,6 +9,10 @@ import smtplib   # used for sending OTP email
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# Auto-initialize the database for ephemeral deployment environments (like Render)
+import init_db
+init_db.init_db()
+
 app = Flask(__name__)
 app.jinja_env.globals['enumerate'] = enumerate  # allow {% for i, x in enumerate(list) %} in templates
 
