@@ -222,40 +222,31 @@ Correct: B</pre>
         <div class="admin-card">
             <h5>📋 Questions Added ({{ current_count }}/{{ limit }})</h5>
             {% if questions %}
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Question</th>
-                        <th>A</th>
-                        <th>B</th>
-                        <th>C</th>
-                        <th>D</th>
-                        <th>Answer</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i, q in enumerate(questions, 1) %}
-                    <tr>
-                        <td>{{ i }}</td>
-                        <td>{{ q.question_text }}</td>
-                        <td>{{ q.option_a }}</td>
-                        <td>{{ q.option_b }}</td>
-                        <td>{{ q.option_c }}</td>
-                        <td>{{ q.option_d }}</td>
-                        <td><span class="badge-cat">{{ q.correct_option }}</span></td>
-                        <td>
-                            <a href="{{ url_for('edit_question', q_id=q.id) }}" class="btn-sm-em mr-1">Edit</a>
-                            <form method="POST" action="{{ url_for('delete_question', q_id=q.id) }}"
-                                style="display:inline" onsubmit="return confirm('Delete this question?')">
-                                <button type="submit" class="btn-danger-sm">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="questions-list mt-3">
+                {% for i, q in enumerate(questions, 1) %}
+                <div class="question-item mb-4 p-4 border rounded shadow-sm" style="background-color: #fafafa;">
+                    <div class="question-text mb-3">
+                        <h6 style="color: #2d3748; font-size: 1.1rem; line-height: 1.5;"><strong>{{ i }}.</strong> {{ q.question_text }}</h6>
+                    </div>
+                    <div class="options-list mb-3 pl-3" style="color: #4a5568;">
+                        <div class="mb-2"><strong>A.</strong> {{ q.option_a }}</div>
+                        <div class="mb-2"><strong>B.</strong> {{ q.option_b }}</div>
+                        <div class="mb-2"><strong>C.</strong> {{ q.option_c }}</div>
+                        <div class="mb-2"><strong>D.</strong> {{ q.option_d }}</div>
+                    </div>
+                    <div class="answer-section mb-3 border-top pt-3">
+                        <strong>Answer:</strong> <span class="badge-cat">{{ q.correct_option }}</span>
+                    </div>
+                    <div class="actions-section">
+                        <a href="{{ url_for('edit_question', q_id=q.id) }}" class="btn-sm-em mr-2">Edit</a>
+                        <form method="POST" action="{{ url_for('delete_question', q_id=q.id) }}"
+                            style="display:inline" onsubmit="return confirm('Delete this question?')">
+                            <button type="submit" class="btn-danger-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
             <p style="color:#718096;text-align:center;padding:20px 0;">No questions yet. Add some above!</p>
             {% endif %}
